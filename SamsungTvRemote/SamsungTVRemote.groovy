@@ -17,6 +17,10 @@ a.	onPollParse() treats a 200 response with no device.PowerState field as powere
 b.	Added DIAL-based streaming app detection: attributes streamingApp and inMovieApp,
 	polled from http://<ip>:<dialPort>/ws/app/<name> for the apps named in the
 	movieApps preference.  Works without the SmartThings interface.
+c.	Namespace is "lpezet", not "davegut", so this driver installs alongside the original
+	instead of replacing it.  Existing devices must be switched to it by hand (Device
+	page, Type = "Samsung TV Remote" under lpezet, then Save Preferences).
+d.	version() reports 2.3.9.2, matching packageManifest.json.
 ===========================================================================================*/
 def driverVer() { return version() }
 import groovy.json.JsonOutput
@@ -24,7 +28,7 @@ import groovy.json.JsonSlurper
 
 metadata {
 	definition (name: "Samsung TV Remote",
-				namespace: "davegut",
+				namespace: "lpezet",
 				author: "David Gutheinz",
 				singleThreaded: true,
 				importUrl: "https://raw.githubusercontent.com/lpezet/HubitatActive/master/SamsungTvRemote/SamsungTVRemote.groovy"
@@ -1648,9 +1652,9 @@ library ( // library marker davegut.Logging, line 1
 	documentationLink: "" // library marker davegut.Logging, line 7
 ) // library marker davegut.Logging, line 8
 
-def nameSpace() { return "davegut" } // library marker davegut.Logging, line 10
+def nameSpace() { return "lpezet" } // library marker davegut.Logging, line 10
 
-def version() { return "2.3.9b" } // library marker davegut.Logging, line 12
+def version() { return "2.3.9.2" } // library marker davegut.Logging, line 12
 
 def label() { // library marker davegut.Logging, line 14
 	if (device) {  // library marker davegut.Logging, line 15
