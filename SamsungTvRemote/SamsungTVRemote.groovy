@@ -19,7 +19,7 @@ metadata {
 				namespace: "davegut",
 				author: "David Gutheinz",
 				singleThreaded: true,
-				importUrl: "https://raw.githubusercontent.com/DaveGut/HubitatActive/master/SamsungTvRemote/SamsungTVRemote.groovy"
+				importUrl: "https://raw.githubusercontent.com/lpezet/HubitatActive/master/SamsungTvRemote/SamsungTVRemote.groovy"
 			   ){
 		capability "Refresh"
 		capability "Configuration"
@@ -172,6 +172,7 @@ def onPollParse(resp, data) {
 	def powerState
 	if (resp.status == 200) {
 		powerState = new JsonSlurper().parseText(resp.data).device.PowerState
+		if (powerState == null) { powerState = "on" }	//	2018 models have no PowerState
 	} else {
 		powerState = "NC"
 	}
