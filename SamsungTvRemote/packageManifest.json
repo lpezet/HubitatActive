@@ -1,12 +1,12 @@
 {
   "packageName": "Samsung TV Remote (2018 Tizen fork)",
   "author": "David Gutheinz (fork maintained by lpezet)",
-  "version": "2.3.9.1",
+  "version": "2.3.9.2",
   "minimumHEVersion": "2.3.9",
   "documentationLink": "https://github.com/lpezet/HubitatActive/blob/master/SamsungTvRemote/README.md",
   "communityLink": "https://community.hubitat.com/t/samsung-hubitat-tv-integration/55120",
   "dateReleased": "2026-8-20",
-  "releaseNotes" : "Unofficial fork of David Gutheinz's Samsung TV Remote 2.3.9.  Not published or supported by the original author.  Fork change: onPollParse() now treats a 200 response with no device.PowerState field as powered on, so 2018 Tizen models are no longer reported as off.",
+  "releaseNotes" : "Unofficial fork of David Gutheinz's Samsung TV Remote 2.3.9.  Not published or supported by the original author.  Fork changes: (1) onPollParse() treats a 200 response with no device.PowerState field as powered on, so 2018 Tizen models are no longer reported as off.  (2) Added DIAL-based streaming app detection with the streamingApp and inMovieApp attributes, configured by the movieApps, dialPollInterval and dialPort preferences.",
   "drivers": [
     {
       "id": "b65cee3e-2c83-4281-97bb-fee7a20f5d0b",

@@ -1,7 +1,13 @@
 # Hubitat Samsung TV Remote (2018 Tizen fork)
 Unofficial fork of [David Gutheinz's Samsung TV Remote driver](https://github.com/DaveGut/HubitatActive/tree/master/SamsungTvRemote), created and authored by David Gutheinz.  This fork is not published or supported by him — please raise fork issues here, not on his repo or community thread.
 
-Fork change: a poll that returns HTTP 200 without a `device.PowerState` field is treated as powered on, so 2018 Tizen models are no longer reported as off.
+Fork changes:
+- A poll that returns HTTP 200 without a `device.PowerState` field is treated as powered on, so 2018 Tizen models are no longer reported as off.
+- DIAL-based streaming app detection, which needs no SmartThings account.  Two attributes are added:
+  - `streamingApp` — the DIAL name of the running app, or `none`
+  - `inMovieApp` — `true` while one of the configured apps is running, `false` otherwise
+
+  Three preferences drive it: **Streaming App Polling Interval** (off/1/5/10/30 minutes, default 1), **Movie app DIAL names** (comma separated, default `Netflix,PrimeVideo,Hulu,Disney`), and **DIAL Port** (`8080` for legacy models, `8001` for Tizen).  Each poll asks the TV about each named app and takes the one reporting `<state>running</state>`; events fire only when a value actually changes, so `inMovieApp` stays quiet while you switch between two movie apps.  The **dialPoll** command runs a poll on demand — use it with debug logging on to confirm your DIAL names and port.
 
 This driver provide integration of the Samsung TV Remote Control functions with the Hubitat.  Additionally, it provides an option to connect to the SmartThings Cloud for addition functions and information not otherwise available. 
 

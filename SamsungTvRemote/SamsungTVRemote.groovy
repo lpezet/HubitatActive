@@ -14,6 +14,9 @@ Unofficial fork of the above driver, maintained at https://github.com/lpezet/Hub
 Not published or supported by David Gutheinz; please do not raise fork issues with him.
 a.	onPollParse() treats a 200 response with no device.PowerState field as powered on,
 	which 2018 Tizen models require.
+b.	Added DIAL-based streaming app detection: attributes streamingApp and inMovieApp,
+	polled from http://<ip>:<dialPort>/ws/app/<name> for the apps named in the
+	movieApps preference.  Works without the SmartThings interface.
 ===========================================================================================*/
 def driverVer() { return version() }
 import groovy.json.JsonOutput
@@ -33,6 +36,10 @@ metadata {
 		capability "Switch"
 		capability "PushableButton"
 		capability "Variable"
+	//	Fork:  DIAL-based streaming app detection
+		attribute "streamingApp", "string"
+		attribute "inMovieApp", "enum", ["true", "false"]
+		command "dialPoll"
 	}
 	preferences {
 		input ("deviceIp", "text", title: "Samsung TV Ip", defaultValue: "")
@@ -52,6 +59,13 @@ metadata {
 		}
 		input ("pollInterval","enum", title: "Power Polling Interval (seconds)",
 			   options: ["off", "10", "20", "30", "60"], defaultValue: "60")
+	//	Fork:  DIAL-based streaming app detection
+		input ("dialPollInterval", "enum", title: "Streaming App Polling Interval (minutes)",
+			   options: ["off", "1", "5", "10", "30"], defaultValue: "1")
+		input ("movieApps", "text", title: "Movie app DIAL names (comma separated)",
+			   defaultValue: "Netflix,PrimeVideo,Hulu,Disney")
+		input ("dialPort", "enum", title: "DIAL Port (8080 = legacy, 8001 = Tizen)",
+			   options: ["8080", "8001"], defaultValue: "8080")
 		tvAppsPreferences()
 	}
 }
@@ -87,6 +101,11 @@ def updated() {
 		if (logEnable) { runIn(1800, debugLogOff) }
 		updStatus << [logEnable: logEnable, infoLog: infoLog]
 		updStatus << [setOnPollInterval: setOnPollInterval()]
+		updStatus << [setDialPollInterval: setDialPollInterval()]
+		if (device.currentValue("streamingApp") == null) {
+			sendEvent(name: "streamingApp", value: "none")
+			sendEvent(name: "inMovieApp", value: "false")
+		}
 		sendEvent(name: "numberOfButtons", value: 60)
 		sendEvent(name: "wsStatus", value: "closed")
 		def action = configure()
@@ -197,6 +216,78 @@ def onPollParse(resp, data) {
 	logDebug(logData)
 }
 
+//	===== Fork:  DIAL Streaming App Detection =====
+def setDialPollInterval() {
+	if (dialPollInterval == null) {
+		dialPollInterval = "1"
+		device.updateSetting("dialPollInterval", [type:"enum", value: "1"])
+	}
+	switch(dialPollInterval) {
+		case "1": runEvery1Minute(dialPoll); break
+		case "5": runEvery5Minutes(dialPoll); break
+		case "10": runEvery10Minutes(dialPoll); break
+		case "30": runEvery30Minutes(dialPoll); break
+		default: break
+	}
+	return dialPollInterval
+}
+
+def dialPoll() {
+	if (device.currentValue("switch") != "on") {
+		setApp("none")
+		return
+	}
+	if (!movieApps || movieApps.trim() == "") {
+		logWarn("dialPoll: No movie app DIAL names set.  Poll skipped.")
+		return
+	}
+	def port = dialPort
+	if (port == null) { port = "8080" }
+	state.dialFound = "none"
+	movieApps.split(",").each { app ->
+		app = app.trim()
+		if (app != "") {
+			asynchttpGet("dialParse",
+						 [uri: "http://${deviceIp}:${port}/ws/app/${app}", timeout: 4],
+						 [app: app])
+		}
+	}
+	runIn(6, dialFinish)
+}
+
+def dialParse(resp, data) {
+	Map logData = [method: "dialParse", app: data.app]
+	def running = false
+	try {
+		logData << [httpStatus: resp.status]
+		running = (resp.status == 200 && resp.data?.contains("<state>running"))
+	} catch (err) {
+		logData << [error: err]
+	}
+	//	Only a running app sets the found app.  Not-running responses are ignored so
+	//	that dialFinish falls back to the "none" set at the start of the poll.
+	if (running) { state.dialFound = data.app }
+	logData << [running: running]
+	logDebug(logData)
+}
+
+def dialFinish() { setApp(state.dialFound) }
+
+def setApp(app) {
+	if (app == null) { app = "none" }
+	def inApp = (app != "none") ? "true" : "false"
+	Map logData = [method: "setApp", streamingApp: app, inMovieApp: inApp]
+	if (device.currentValue("streamingApp") != app) {
+		sendEvent(name: "streamingApp", value: app)
+		logData << [streamingAppChanged: true]
+	}
+	if (device.currentValue("inMovieApp") != inApp) {
+		sendEvent(name: "inMovieApp", value: inApp)		//	fires only on real edges
+		logData << [inMovieAppChanged: true]
+	}
+	logDebug(logData)
+}
+
 //	===== Capability Switch =====
 def on() {
 	logInfo("on: [frameTv: ${getDataValue("frameTv")}]")
@@ -243,6 +334,7 @@ def setPowerOffMode() {
 	sendEvent(name: "appName", value: " ")
 	sendEvent(name: "tvChannel", value: " ")
 	sendEvent(name: "tvChannelName", value: " ")
+	setApp("none")
 	runIn(5, refresh)
 }
 
