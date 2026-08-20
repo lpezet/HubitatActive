@@ -9,6 +9,11 @@ b.	Added buttons to support preset functions in dashboards.
 c.	Added app codes to built-in app search list.
 d.  Created methods to support adding running app automatically to state.appData
 	if the SmartThings interface is enabled.
+===== Fork Notes ==========================================================================
+Unofficial fork of the above driver, maintained at https://github.com/lpezet/HubitatActive.
+Not published or supported by David Gutheinz; please do not raise fork issues with him.
+a.	onPollParse() treats a 200 response with no device.PowerState field as powered on,
+	which 2018 Tizen models require.
 ===========================================================================================*/
 def driverVer() { return version() }
 import groovy.json.JsonOutput
@@ -52,7 +57,7 @@ metadata {
 }
 
 String helpLogo() { // library marker davegut.kasaCommon, line 11
-	return """<a href="https://github.com/DaveGut/HubitatActive/blob/master/SamsungTvRemote/README.md">""" +
+	return """<a href="https://github.com/lpezet/HubitatActive/blob/master/SamsungTvRemote/README.md">""" +
 		"""<div style="position: absolute; top: 10px; right: 10px; height: 80px; font-size: 20px;">Samsung TV Remote Help</div></a>"""
 }
 
