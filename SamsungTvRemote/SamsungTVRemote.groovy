@@ -65,7 +65,7 @@ metadata {
 			   options: ["off", "10", "20", "30", "60"], defaultValue: "60")
 	//	Fork:  DIAL-based streaming app detection
 		input ("dialPollInterval", "enum", title: "Streaming App Polling Interval (minutes)",
-			   options: ["off", "1", "5", "10", "30"], defaultValue: "1")
+			   options: ["1", "5", "10", "30"], defaultValue: "1")
 		input ("movieApps", "text", title: "Movie app DIAL names (comma separated)",
 			   defaultValue: "Netflix,PrimeVideo,Hulu,Disney")
 		input ("dialPort", "enum", title: "DIAL Port (8080 = legacy, 8001 = Tizen)",
@@ -222,18 +222,19 @@ def onPollParse(resp, data) {
 
 //	===== Fork:  DIAL Streaming App Detection =====
 def setDialPollInterval() {
-	if (dialPollInterval == null) {
-		dialPollInterval = "1"
-		device.updateSetting("dialPollInterval", [type:"enum", value: "1"])
+	def interval = (settings.dialPollInterval ?: "1").toString()
+	if (settings.dialPollInterval == null) {
+		device.updateSetting("dialPollInterval", [type: "enum", value: "1"])
 	}
-	switch(dialPollInterval) {
-		case "1": runEvery1Minute(dialPoll); break
-		case "5": runEvery5Minutes(dialPoll); break
+	unschedule("dialPoll")
+	switch(interval) {
+		case "1":  runEvery1Minute(dialPoll); break
+		case "5":  runEvery5Minutes(dialPoll); break
 		case "10": runEvery10Minutes(dialPoll); break
 		case "30": runEvery30Minutes(dialPoll); break
-		default: break
+		default:   runEvery1Minute(dialPoll); break
 	}
-	return dialPollInterval
+	return interval
 }
 
 def dialPoll() {
