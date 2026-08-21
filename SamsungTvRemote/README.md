@@ -9,7 +9,7 @@ Fork changes:
 
   Three preferences drive it: **Streaming App Polling Interval** (1/5/10/30 minutes, default 1), **Movie app DIAL names** (comma separated, default `Netflix,PrimeVideo,Hulu,Disney`), and **DIAL Port** (`8080` for legacy models, `8001` for Tizen).  Each poll asks the TV about each named app and takes the one reporting `<state>running</state>`; events fire only when a value actually changes, so `inMovieApp` stays quiet while you switch between two movie apps.  The **dialPoll** command runs a poll on demand — use it with debug logging on to confirm your DIAL names and port.
 - The driver namespace is `lpezet` rather than `davegut`, so it installs alongside the original instead of taking over its driver slot.  A device already running the original **will not switch by itself**: open the device, set **Type** to "Samsung TV Remote" under the `lpezet` namespace, hit Save Device, then **Save Preferences**.  Attributes and device history survive the switch; check that the TV IP and any SmartThings settings carried over.
-- `version()` reports `2.3.9.2`, matching `packageManifest.json`, so the version in the device label matches the HPM package version.
+- `version()` reports `2.3.9.3`, matching `packageManifest.json`, so the version in the device label matches the HPM package version.
 
 This driver provide integration of the Samsung TV Remote Control functions with the Hubitat.  Additionally, it provides an option to connect to the SmartThings Cloud for addition functions and information not otherwise available. 
 
